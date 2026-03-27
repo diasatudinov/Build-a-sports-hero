@@ -2,7 +2,24 @@
 //  Application + ext.swift
 //  Build a sports hero
 //
-//  Created by Dias Atudinov on 23.03.2026.
 //
 
-import Foundation
+import UIKit
+import SwiftUI
+
+extension UIApplication {
+    func hideKeyboard() {
+        sendAction(#selector(UIResponder.resignFirstResponder),
+                   to: nil,
+                   from: nil,
+                   for: nil)
+    }
+}
+
+extension View {
+    func hideKeyboardOnTap() -> some View {
+        self.onTapGesture {
+            UIApplication.shared.hideKeyboard()
+        }
+    }
+}
