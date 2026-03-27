@@ -1,3 +1,11 @@
+//
+//  SHStatisticsView.swift
+//  Build a sports hero
+//
+//  Created by Dias Atudinov on 27.03.2026.
+//
+
+
 import SwiftUI
 import Charts
 
@@ -9,6 +17,17 @@ struct SHStatisticsView: View {
 
     var body: some View {
         ScrollView {
+            VStack {
+                Text("Calendar")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(.black)
+                
+                Rectangle()
+                    .frame(height: 2)
+                    .foregroundStyle(.black.opacity(0.5))
+            }
+            .padding(.horizontal, -16)
+            
             VStack(spacing: 16) {
 
                 weeklyActivityCard
@@ -19,36 +38,41 @@ struct SHStatisticsView: View {
             }
             .padding()
         }
-        .navigationTitle("Statistics")
-        .background(Color(.systemGroupedBackground))
     }
 
-    // MARK: - Weekly Activity
+    // MARK: - Weekly Activity (Line + Points + dashed red goal line)
 
     private var weeklyActivityCard: some View {
         let data = viewModel.weeklyActivity(lastWeeks: 7)
 
         return VStack(alignment: .leading, spacing: 10) {
             Text("Weekly Activity")
-                .font(.headline)
+                .font(.system(size: 20, weight: .semibold))
 
             Chart {
                 ForEach(data) { item in
-                    BarMark(
+                    LineMark(
                         x: .value("Week", item.weekStart),
                         y: .value("Missions", item.count)
                     )
-                    .cornerRadius(6)
+                    .interpolationMethod(.catmullRom)
+                    .foregroundStyle(.red)
+                }
+
+                ForEach(data) { item in
+                    PointMark(
+                        x: .value("Week", item.weekStart),
+                        y: .value("Missions", item.count)
+                    )
+                    .foregroundStyle(.red)
                 }
 
                 RuleMark(y: .value("Goal", weeklyGoalTarget))
                     .foregroundStyle(.red)
-                    .lineStyle(StrokeStyle(lineWidth: 2))
+                    .lineStyle(StrokeStyle(lineWidth: 2, dash: [6, 4]))
             }
             .frame(height: 220)
-            .chartYAxis {
-                AxisMarks(position: .leading)
-            }
+            .chartYAxis { AxisMarks(position: .leading) }
             .chartXAxis {
                 AxisMarks(values: .stride(by: .weekOfYear)) { value in
                     AxisGridLine()
@@ -66,39 +90,43 @@ struct SHStatisticsView: View {
                 .foregroundStyle(.secondary)
         }
         .padding()
-        .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
-    // MARK: - Muscle Groups
+    // MARK: - Muscle Groups (Bar chart)
 
     private var muscleGroupsCard: some View {
         let stats = viewModel.muscleGroupStats()
 
         return VStack(alignment: .leading, spacing: 10) {
             Text("Muscle Groups")
-                .font(.headline)
+                .font(.system(size: 20, weight: .semibold))
 
             Chart {
                 ForEach(stats) { item in
                     BarMark(
-                        x: .value("Count", item.count),
-                        y: .value("Group", item.category.rawValue)
+                        x: .value("Group", item.category.rawValue),
+                        y: .value("Count", item.count)
                     )
-                    .cornerRadius(6)
+                    .cornerRadius(10)
+                    .foregroundStyle(.red)
                 }
             }
             .frame(height: 240)
+            .chartYAxis { AxisMarks(position: .leading) }
             .chartXAxis {
-                AxisMarks(position: .bottom)
-            }
-            .chartYAxis {
-                AxisMarks(position: .leading)
+                AxisMarks { value in
+                    AxisGridLine()
+                    AxisTick()
+                    AxisValueLabel {
+                        // подписи категорий могут быть длинными — чуть уменьшим
+                        if let label = value.as(String.self) {
+                            Text(label).font(.caption2)
+                        }
+                    }
+                }
             }
         }
         .padding()
-        .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
     // MARK: - Summary
@@ -120,24 +148,25 @@ struct SHStatisticsView: View {
     private func metricCard(title: String, value: String) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
-                .font(.caption)
+                .font(.system(size: 15, weight: .regular))
                 .foregroundStyle(.secondary)
 
             Text(value)
-                .font(.title3.bold())
+                .font(.system(size: 24, weight: .semibold))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
-        .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
     // MARK: - Date formatting
 
     private func shortWeekLabel(_ date: Date) -> String {
-        // пример: "Mar 4"
         let f = DateFormatter()
         f.dateFormat = "MMM d"
         return f.string(from: date)
     }
+}
+
+#Preview {
+    SHStatisticsView(viewModel: SHProfileViewModel())
 }

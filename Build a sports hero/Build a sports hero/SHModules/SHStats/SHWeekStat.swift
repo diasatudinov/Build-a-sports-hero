@@ -121,3 +121,24 @@ extension SHProfileViewModel {
         return calendar.date(from: comps) ?? date
     }
 }
+
+extension SHProfileViewModel {
+
+    var totalLevelsCount: Int { 8 } // у тебя фиксировано 8 уровней
+
+    func totalMissionsAllTime() -> Int {
+        completedLog.count
+    }
+
+    func missionCountByCategoryAllTime() -> [SHMissionCategory: Int] {
+        let categoryByID = Dictionary(uniqueKeysWithValues: missions.map { ($0.id, $0.category) })
+        var counts: [SHMissionCategory: Int] = [:]
+
+        for item in completedLog {
+            if let cat = categoryByID[item.missionID] {
+                counts[cat, default: 0] += 1
+            }
+        }
+        return counts
+    }
+}
